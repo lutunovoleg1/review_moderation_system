@@ -4,7 +4,7 @@ import re
 import pymorphy2
 from functools import lru_cache
 
-from dicts import (
+from .dicts import (
     bad_words, stop_words, positive_words,
     negative_words, intensifiers, diminishers,
 )

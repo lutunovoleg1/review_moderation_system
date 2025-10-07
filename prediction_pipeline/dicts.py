@@ -1,7 +1,10 @@
 import pickle
+import os
 
+# Получаем директорию, где находится текущий файл
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-with open('data/bad_words.pickle', 'rb') as file:
+with open(os.path.join(CURRENT_DIR, 'data', 'bad_words.pickle'), 'rb') as file:
     bad_words = pickle.load(file)
 
 stop_words = [
