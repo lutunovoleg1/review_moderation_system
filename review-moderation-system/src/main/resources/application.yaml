@@ -1,3 +1,12 @@
 spring:
   application:
     name: Review Moderation System
+
+python:
+  model:
+    script:
+      path: "${PYTHON_SCRIPT_PATH:run_model.py}"
+      working-directory: "${PYTHON_WORKING_DIR:..}"
+    virtual-env:
+      path: "${PYTHON_VENV_PATH:python-env/bin/python3}"
+      activate: "${PYTHON_VENV_ACTIVATE:true}"
