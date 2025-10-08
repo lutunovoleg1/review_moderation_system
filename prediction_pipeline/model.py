@@ -1,6 +1,6 @@
 import pandas as pd
 from catboost import CatBoostClassifier, Pool
-from features import Features
+from .features import Features
 from typing import Union
 
 
@@ -19,8 +19,11 @@ class Model:
 
     def _load_model(self) -> CatBoostClassifier:
         """Загружает обученную модель из .cbr"""
+        import os
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(current_dir, 'data', 'text_and_heuristics_model.cbm')
         model = CatBoostClassifier()
-        model.load_model('data/text_and_heuristics_model.cbm')
+        model.load_model(model_path)
         return model
 
     def _process_input(self, input: Union[pd.DataFrame, list[str]]) -> Pool:
@@ -49,3 +52,13 @@ class Model:
             {'label': label, 'probability': prob[label]} for label, prob in zip(predictions, probs)
         ]
         return output
+
+    def predict_detailed_single(self, text: str) -> dict[str, Union[int, float]]:
+        """Предсказывает класс и вероятность для одной строки"""
+        if not isinstance(text, str):
+            raise ValueError("Input must be a string")
+        df = pd.DataFrame({'text': [text]})
+        pool = self._process_input(df)
+        label = self.cb_model.predict(pool).squeeze()
+        prob = self.cb_model.predict_proba(pool).tolist()[0]
+        return {'label': int(label), 'probability': prob[int(label)]}
