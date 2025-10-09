@@ -1,0 +1,55 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDEs
+.idea
+.vscode
+*.iml
+*.ipr
+*.iws
+
+# Build artifacts
+review-moderation-system/build/
+review-moderation-system/.gradle/
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Python
+python-env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Notebooks and research
+notebooks/
+*.ipynb
+.ipynb_checkpoints/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test results
+review-moderation-system/build/test-results/
+review-moderation-system/build/reports/
+
+# Documentation
+*.md
+!README.md
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
