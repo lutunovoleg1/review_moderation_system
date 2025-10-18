@@ -1,6 +1,6 @@
 import pandas as pd
 from catboost import CatBoostClassifier, Pool
-from .features import Features
+from features import Features
 from typing import Union
 
 
