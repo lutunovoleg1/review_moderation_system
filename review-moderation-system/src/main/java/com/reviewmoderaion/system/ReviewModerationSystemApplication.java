@@ -2,8 +2,10 @@ package com.reviewmoderaion.system;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
+@ComponentScan(basePackages = "com.reviewmoderaion.system")
 public class ReviewModerationSystemApplication {
 
 	public static void main(String[] args) {

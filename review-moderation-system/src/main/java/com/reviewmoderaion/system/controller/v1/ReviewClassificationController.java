@@ -10,20 +10,20 @@ import jakarta.validation.Valid;
 
 import com.reviewmoderaion.system.dto.ReviewRequestDto;
 import com.reviewmoderaion.system.dto.ReviewResponseDto;
-import com.reviewmoderaion.system.service.ReviewModerationService;
+import com.reviewmoderaion.system.service.ReviewClassificationService;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/reviews")
 @RequiredArgsConstructor
-public class ReviewsController {
+public class ReviewClassificationController {
 
-    private final ReviewModerationService reviewModerationService;
+    private final ReviewClassificationService reviewClassificationService;
 
-    @PostMapping("/moderate")
-    public ResponseEntity<ReviewResponseDto> moderateReview(@Valid @RequestBody ReviewRequestDto review) {
-        ReviewResponseDto response = reviewModerationService.moderateReview(review);
+    @PostMapping("/classify")
+    public ResponseEntity<ReviewResponseDto> classifyReview(@Valid @RequestBody ReviewRequestDto review) {
+        ReviewResponseDto response = reviewClassificationService.classifyReview(review);
         return ResponseEntity.ok(response);
     }
 }
