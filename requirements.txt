@@ -1,5 +1,0 @@
-catboost==1.2.8
-pandas==2.3.2
-numpy==2.0.2
-pymorphy2==0.9.1
-pymorphy2-dicts-ru==2.4.417127.4579844

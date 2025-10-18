@@ -1,32 +1,32 @@
 version: '3.8'
 
+networks:
+  internal-network:
+    driver: bridge
+
 services:
-  review-moderation-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: review-moderation-system:latest
-    container_name: review-moderation-app
+  prediction-pipeline:
+    build: 
+      context: ./prediction_pipeline
+    volumes:
+      - ./prediction_pipeline/data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - internal-network
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  review-moderation-system:
+    build: 
+      context: ./review-moderation-system
     ports:
       - "8080:8080"
+    depends_on:
+      - prediction-pipeline
     environment:
-      - PYTHON_SCRIPT_PATH=run_model.py
-      - PYTHON_WORKING_DIR=/app
-      - PYTHON_VENV_PATH=python3
-      - PYTHON_VENV_ACTIVATE=false
-      - JAVA_OPTS=-Xmx512m -XX:+UseG1GC
+      - PREDICTION_PIPELINE_URL=http://prediction-pipeline:8000/predict
+    networks:
+      - internal-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 40s
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 1G
-        reservations:
-          cpus: '1'
-          memory: 512M
