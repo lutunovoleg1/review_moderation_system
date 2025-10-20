@@ -1,101 +1,125 @@
 # Review Moderation System
-Review Moderation System is an educational project that illustrates the architecture of an information system for automatic moderation of textual reviews. The system processes user-generated content, classifies it into categories such as acceptable, spam, or offensive, and produces a structured report.
 
-## Prediction Pipeline
+Автоматизированная система модерации отзывов на русском языке.  
+Проект объединяет **Java Spring Boot backend** и **ML-модель на Python (CatBoost)**, взаимодействующие через REST API в Docker-окружении.
 
-Система использует пайплайн предсказания, основанный на CatBoost классификаторе с эвристическими признаками.
+Система принимает текстовые отзывы, классифицирует их по категориям  
+(положительный, отрицательный, спам, оскорбительный и т.д.)  
+и возвращает модератору рекомендацию — `ALLOW`, `MANUAL_REVIEW` или `REJECT`.
 
-### Архитектура
+---
+
+## Архитектура
+
+Проект реализован по микросервисному принципу и включает два контейнера:
+
+- **review-service** — REST API на Java (порт `8080`)  
+- **model-service** — ML-модель на Python (порт `8000`)
+
+**Основные компоненты:**
+
+- `ReviewController` — приём и валидация запросов `/api/v1/reviews/classify`  
+- `ReviewService` — бизнес-логика и интеграция с моделью  
+- `ModelClient` — HTTP-взаимодействие с ML-сервисом  
+- `GlobalExceptionHandler` — глобальная обработка ошибок  
+- `model_api` (Python) — сервис с моделью CatBoost, отвечающий на запросы `/predict`
+
+---
+
+## Возможности
+
+- Классификация отзывов на русском языке  
+- REST API для интеграции  
+- Обработка ошибок и валидация входных данных  
+- Полностью контейнеризованная сборка (Docker Compose)  
+- Простое локальное развёртывание и тестирование  
+
+---
+
+## Развёртывание через Docker Compose
+
+### 1. Клонирование репозитория
 
 ```
-Input Text → Feature Extraction → CatBoost Model → Prediction
+git clone https://github.com/rymarmary/review_moderation_system.git
+cd review_moderation_system
 ```
 
-### Компоненты
+### 2. Сборка и запуск контейнеров
 
-#### 1. `Model` (model.py)
-Основной класс для инференса модели:
-- Загружает предобученную CatBoost модель (.cbm)
-- Принимает на вход список строк или pandas DataFrame
-- Возвращает предсказания классов или детальную информацию с вероятностями
-
-```python
-from model import Model
-
-model = Model()
-
-# Простые предсказания (только классы)
-predictions = model.predict(['Отличный фильм!', 'Плохой сервис'])
-
-# Детальные предсказания (класс + вероятность)
-detailed = model.predict_detailed(['Отличный фильм!'])
+```
+docker compose app build
+docker compose up
 ```
 
-#### 2. `Features` (features.py)
-Класс для извлечения эвристических признаков:
-- **Базовые метрики**: длина текста, средняя длина слов
-- **Пунктуация**: отношение знаков препинания, восклицательных и вопросительных знаков
-- **Капитализация**: отношение слов и символов в верхнем регистре
-- **Лексические признаки**: стоп-слова, уникальные слова, позитивные/негативные слова
-- **Эмоциональные маркеры**: усилители, ослабители, нецензурная лексика
+После сборки оба контейнера запускаются автоматически:
 
-#### 3. Словари (dicts.py)
-Содержит предопределенные списки слов для анализа:
-- `positive_words` - позитивная лексика
-- `negative_words` - негативная лексика
-- `intensifiers` - усилители эмоций
-- `diminishers` - ослабители эмоций
-- `bad_words` - нецензурная лексика
-- `stop_words` - стоп-слова
+- REST API доступно по адресу: [http://localhost:8080](http://localhost:8080)  
+- ML-модель доступна по адресу: [http://localhost:8000](http://localhost:8000)
 
-### Классы предсказаний
+---
 
-- **0**: NEUTRAL - нейтральный тон
-- **1**: POSITIVE - позитивный тон  
-- **2**: NEGATIVE - негативный тон
+## Пример запроса
 
-### Установка и настройка
-
-#### 1. Создание виртуального окружения
-
-```bash
-# Создание виртуального окружения
-python -m venv python-env
-
-# Активация (Linux/macOS)
-source python-env/bin/activate
-
-# Активация (Windows)
-python-env\Scripts\activate
+```
+curl -X POST http://localhost:8080/api/v1/reviews/classify   -H "Content-Type: application/json"   -d '{"review": "Товар не понравился, ожидал большего качества."}'
 ```
 
-#### 2. Установка зависимостей
+### Пример ответа
 
-```bash
-pip install -r requirements.txt
+```
+{
+  "reviewId": "697d7ef1-ed3b-471f-ab72-59c5f13b3f7d",
+  "originalText": "Товар не понравился, ожидал большего качества.",
+  "recommendation": "MANUAL_REVIEW",
+  "confidenceScore": 0.80,
+  "processedAt": "2025-10-18T20:37:16Z"
+}
 ```
 
-### Использование
+---
 
-```python
-from prediction_pipeline.model import Model
+## Структура проекта
 
-# Инициализация модели
-model = Model()
-
-# Предсказание для одного текста
-result = model.predict(['Этот товар просто супер!'])
-print(result)  # [1] - POSITIVE
-
-# Детальная информация
-detailed = model.predict_detailed(['Этот товар просто супер!'])
-print(detailed)  # [{'label': 1, 'probability': 0.85}]
+```
+review_moderation_system/
+│
+├── review-moderation-system/     # Spring Boot приложение (Java)
+├── prediction_pipeline/          # ML-инференс модель (Python)
+├── notebooks/                    # исследование и обучение модели
+├── Dockerfile                    # сборка Java приложения
+├── docker-compose.yml            # общий запуск обоих контейнеров
+├── run_model.py                  # запуск Python-сервиса
+└── README.md
 ```
 
-### Требования
+---
 
-- Python 3.8+
-- `catboost==1.2.8`
-- `pandas==2.3.2`
-- `pymorphy2==0.9.1`
-- `numpy==2.0.2`
+## UML-диаграммы
+
+В проекте разработаны следующие UML-диаграммы:
+
+1. **Диаграмма вариантов использования** — взаимодействие модератора и системы  
+2. **Диаграмма классов** — структура основных компонентов  
+3. **Диаграмма состояний** — жизненный цикл обработки запроса  
+4. **Диаграмма последовательности** — порядок вызовов между сервисами  
+
+Диаграммы приведены в отчёте по курсовому проекту и доступны в каталоге `/docs/uml`.
+
+---
+
+## Команда проекта
+
+| Участник | Роль |
+|-----------|------|
+| **Мария Рымарь** | UML-диаграммы, отчёт, код-ревью, интеграция |
+| **Матвей Мелихов** | Разработка и обучение ML-модели на Python (CatBoost) |
+| **Владислав Придчин** | Реализация backend-части на Java Spring Boot, Docker и Compose |
+
+---
+
+## Лицензия
+
+Проект разработан в рамках курсовой работы  
+по дисциплине **«Архитектура вычислительных и информационных систем»**  
+и предназначен для учебных целей.
